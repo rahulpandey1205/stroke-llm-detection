@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Assessment History - NeuroGuard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-container {
+        max-width: 400px;
+    }
+    .status-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    .badge-high { background-color: rgba(231, 76, 60, 0.1); color: #e74c3c; }
+    .badge-moderate { background-color: rgba(243, 156, 18, 0.1); color: #f39c12; }
+    .badge-low { background-color: rgba(46, 204, 113, 0.1); color: #2ecc71; }
+    
+    .table-card {
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 0.75rem 1.5rem rgba(18,38,63,.03);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <h2 class="section-title mb-0">Longitudinal Assessment History</h2>
+        <p class="text-muted mb-0">Review and manage clinical records and predictions.</p>
+    </div>
+    <div class="col-auto">
+        <div class="search-container">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                <input type="text" id="historySearch" class="form-control border-start-0 ps-0" placeholder="Search by ID or Risk...">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card table-card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="historyTable">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">ID</th>
+                        <th>Age</th>
+                        <th>Avg. Glucose</th>
+                        <th>BMI</th>
+                        <th>Hypertension</th>
+                        <th>Heart Disease</th>
+                        <th>Risk Classification</th>
+                        <th class="text-end pe-4">Probability</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in patients %}
+                    <tr>
+                        <td class="ps-4 text-muted fw-bold">#{{ p.id }}</td>
+                        <td class="fw-600">{{ p.age|round(0) }}</td>
+                        <td>{{ p.avg_glucose_level|round(1) }} <small class="text-muted">mg/dL</small></td>
+                        <td>{{ p.bmi|round(1) }}</td>
+                        <td>
+                            {% if p.hypertension == 1 %}
+                                <span class="text-danger fw-bold">Yes</span>
+                            {% else %}
+                                <span class="text-muted">No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if p.heart_disease == 1 %}
+                                <span class="text-danger fw-bold">Yes</span>
+                            {% else %}
+                                <span class="text-muted">No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if p.prediction == "High Stroke Risk" %}
+                                <span class="status-badge badge-high">High Risk</span>
+                            {% elif p.prediction == "Moderate Stroke Risk" %}
+                                <span class="status-badge badge-moderate">Moderate</span>
+                            {% else %}
+                                <span class="status-badge badge-low">Low Risk</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4 fw-bold text-primary">{{ p.probability|round(1) }}%</td>
+                    </tr>
+                    {% endfor %}
+                    {% if not patients %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <i class="fa-solid fa-folder-open fa-3x text-muted mb-3 d-block"></i>
+                            <p class="text-muted">No patient records found in the intelligence vault.</p>
+                            <a href="/" class="btn btn-primary btn-sm">Start New Assessment</a>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('historySearch').addEventListener('keyup', function() {
+        const filter = this.value.toUpperCase();
+        const rows = document.querySelector("#historyTable tbody").rows;
+        
+        for (let i = 0; i < rows.length; i++) {
+            const idCol = rows[i].cells[0].textContent.toUpperCase();
+            const riskCol = rows[i].cells[6].textContent.toUpperCase();
+            if (idCol.indexOf(filter) > -1 || riskCol.indexOf(filter) > -1) {
+                rows[i].style.display = "";
+            } else {
+                rows[i].style.display = "none";
+            }      
+        }
+    });
+</script>
+{% endblock %}

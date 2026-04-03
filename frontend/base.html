@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}NeuroGuard: Stroke Risk Detection and Analysis System{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Core Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.155.0/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <style>
+        :root {
+            --primary-blue: #2c7be5;
+            --success-green: #2ecc71;
+            --warning-orange: #f39c12;
+            --danger-red: #e74c3c;
+            --bg-light: #f4f7fb;
+            --bg-dark: #0f172a;
+            --sidebar-dark: #12263f;
+            --text-main: #12263f;
+            --text-muted: #95aac9;
+        }
+
+        /* ----------------------------------
+           CORE LAYOUT: Split-Pane Architecture
+           ---------------------------------- */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden; /* HARD LOCK: The window NEVER scrolls */
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-main);
+        }
+
+        #main-platform {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        /* Sidebar - STATIC BOX */
+        #sidebar {
+            width: 280px;
+            min-width: 280px;
+            height: 100vh;
+            background: var(--sidebar-dark);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0; /* Keep size constant */
+            z-index: 1000;
+        }
+        
+        .sidebar-brand {
+            padding: 30px 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .sidebar-menu {
+            padding: 20px 0;
+            flex-grow: 1;
+            overflow-y: auto; /* Internal scroll only if menu overflows */
+        }
+
+        .sidebar-link {
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin: 4px 15px;
+            border-radius: 8px;
+        }
+        
+        .sidebar-link:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .sidebar-link.active {
+            color: #fff;
+            background: var(--primary-blue);
+            box-shadow: 0 4px 10px rgba(44, 123, 229, 0.3);
+        }
+        
+        .sidebar-link i { width: 24px; font-size: 1.1rem; margin-right: 12px; }
+        
+        /* Content - SCROLLABLE BOX */
+        #content {
+            flex-grow: 1;
+            height: 100vh;
+            overflow-y: auto; /* THIS IS THE ONLY SCROLLBAR ON THE PAGE */
+            padding: 40px;
+            background-color: var(--bg-light);
+            position: relative;
+        }
+
+        /* ----------------------------------
+           ANIMATION OVERLAY
+           ---------------------------------- */
+        #portal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--bg-dark);
+            z-index: 10000;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
+        }
+
+        #three-canvas { position: absolute; top: 0; left: 0; z-index: 1; }
+        .portal-content { position: relative; z-index: 10; text-align: center; }
+        .portal-title {
+            font-size: 4rem; font-weight: 800;
+            background: linear-gradient(to bottom, #fff 0%, #64748b 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+        .portal-subtitle { color: #94a3b8; font-size: 1.2rem; letter-spacing: 4px; margin-bottom: 3rem; }
+        .init-btn {
+            background: transparent; border: 1px solid rgba(44, 123, 229, 0.5);
+            color: white; padding: 18px 50px; font-size: 1rem; border-radius: 4px; cursor: pointer;
+        }
+        .init-btn:hover { background: var(--primary-blue); border-color: var(--primary-blue); }
+
+        /* ----------------------------------
+           COMPONENTS
+           ---------------------------------- */
+        .card { border: none; border-radius: 12px; box-shadow: 0 0.75rem 1.5rem rgba(18,38,63,.03); margin-bottom: 24px; }
+        .card-header { background-color: transparent; border-bottom: 1px solid #edf2f9; padding: 20px 24px; font-weight: 600; }
+        .section-title { font-weight: 700; color: #12263f; margin-bottom: 25px; }
+
+        @media (max-width: 992px) {
+            #sidebar { display: none; } /* Simplified for mobile fix */
+            #content { padding: 20px; }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Cinematic Portal Overlay -->
+    <div id="portal-overlay">
+        <canvas id="three-canvas"></canvas>
+        <div class="portal-content">
+            <i class="fa-solid fa-brain text-primary mb-4" style="font-size: 5rem; opacity: 0.8;"></i>
+            <h1 class="portal-title">NEUROGUARD</h1>
+            <p class="portal-subtitle">Stroke Risk Detection and Analysis System</p>
+            <button class="init-btn" onclick="startDimensionalReveal()">INITIALIZE CLINICAL SYSTEM</button>
+        </div>
+    </div>
+
+    <!-- Main Platform Container -->
+    <div id="main-platform">
+        <!-- Sidebar: Static -->
+        <nav id="sidebar">
+            <div class="sidebar-brand">
+                <div class="d-flex align-items-center">
+                    <i class="fa-solid fa-brain fa-2x text-primary me-3"></i>
+                    <div>
+                        <h5 class="mb-0 fw-bold">NEUROGUARD</h5>
+                        <small class="text-muted">Clinical OS</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-menu">
+                <a href="/dashboard" class="sidebar-link {% if request.url.path == '/dashboard' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-pie"></i> Intelligence Dashboard
+                </a>
+                <a href="/" class="sidebar-link {% if request.url.path == '/' %}active{% endif %}">
+                    <i class="fa-solid fa-user-plus"></i> Patient Assessment
+                </a>
+                <a href="/history" class="sidebar-link {% if request.url.path == '/history' %}active{% endif %}">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Assessment History
+                </a>
+                <a href="/guidelines" class="sidebar-link {% if request.url.path == '/guidelines' %}active{% endif %}">
+                    <i class="fa-solid fa-file-medical"></i> Medical Guidelines
+                </a>
+                
+                <div class="mt-5 px-4">
+                    <div class="p-3 rounded-4 bg-primary bg-opacity-10 text-center">
+                        <small class="text-primary fw-bold d-block mb-1">System Status</small>
+                        <span class="badge bg-success rounded-pill">Model Online</span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Page Content: Scrollable -->
+        <main id="content">
+            {% block content %}{% endblock %}
+
+            <footer class="mt-5 py-4 border-top">
+                <p class="mb-0 text-muted small">&copy; 2026 NeuroGuard: Stroke Risk Detection and Analysis System. Clinical Support Unit.</p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Core Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 1. Three.js Background
+        const canvas = document.getElementById('three-canvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.position.z = 5;
+
+        const count = 1500;
+        const positions = new Float32Array(count * 3);
+        for(let i=0; i<count*3; i++) positions[i] = (Math.random() - 0.5) * 15;
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const mat = new THREE.PointsMaterial({ size: 0.015, color: '#2c7be5', transparent: true, opacity: 0.6 });
+        const particles = new THREE.Points(geo, mat);
+        scene.add(particles);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            particles.rotation.y += 0.001;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // 2. Transition Logic
+        function startDimensionalReveal() {
+            const tl = gsap.timeline();
+            tl.to("#portal-overlay", { y: "-100%", duration: 1.2, ease: "expo.inOut" });
+            tl.to("#main-platform", { opacity: 1, visibility: "visible", duration: 0.5 }, "-=0.6");
+            sessionStorage.setItem('clinicalSystemInitialized', 'true');
+        }
+
+        // 3. Persistence
+        window.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('clinicalSystemInitialized') === 'true') {
+                document.getElementById('portal-overlay').style.display = 'none';
+                document.getElementById('main-platform').style.opacity = '1';
+                document.getElementById('main-platform').style.visibility = 'visible';
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

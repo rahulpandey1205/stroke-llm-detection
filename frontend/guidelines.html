@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Medical Guidelines - NeuroGuard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2 class="section-title">Clinical Protocols & Guidelines</h2>
+        <p class="text-muted">Standardized medical thresholds and preventative strategy reference.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Clinical Thresholds -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold"><i class="fa-solid fa-vial text-primary me-2"></i>Biomarker Thresholds</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-4 pb-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold">Fasting Glucose</span>
+                        <span class="badge bg-danger rounded-pill">> 140 mg/dL</span>
+                    </div>
+                    <p class="small text-muted mb-0">Levels consistently above 140 mg/dL (or HbA1c > 6.5%) indicate Hyperglycemia, a major driver of arterial damage.</p>
+                </div>
+                
+                <div class="mb-4 pb-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold">Body Mass Index (BMI)</span>
+                        <span class="badge bg-warning text-dark rounded-pill">25.0 - 29.9 (Overweight)</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold opacity-0">BMI</span>
+                        <span class="badge bg-danger rounded-pill">> 30.0 (Obese)</span>
+                    </div>
+                    <p class="small text-muted mb-0">High BMI contributes to systemic inflammation and sleep apnea, both which elevate stroke risk.</p>
+                </div>
+
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold">Blood Pressure</span>
+                        <span class="badge bg-danger rounded-pill">> 140/90 mmHg</span>
+                    </div>
+                    <p class="small text-muted mb-0">Chronic Hypertension is the single most significant modifiable risk factor for both ischemic and hemorrhagic strokes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Predictive Model Specs -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100 bg-primary text-white">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4"><i class="fa-solid fa-microchip text-warning me-2"></i>Predictive Model Specifications</h5>
+                
+                <div class="mb-4">
+                    <div class="small fw-bold text-uppercase opacity-75 mb-1">Algorithm</div>
+                    <div class="h5">XGBoost Ensemble (v2.0.3)</div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-6">
+                        <div class="small fw-bold text-uppercase opacity-75 mb-1">Sensitivity</div>
+                        <div class="h4">42.0%</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="small fw-bold text-uppercase opacity-75 mb-1">Global Accuracy</div>
+                        <div class="h4">85.4%</div>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-3 bg-white bg-opacity-10">
+                    <div class="small fw-bold mb-2">Clinical Logic:</div>
+                    <p class="small mb-0 opacity-75">
+                        The model uses <strong>SMOTETomek</strong> for class balancing and is optimized for <strong>Recall</strong>. 
+                        A 30% probability threshold is used to classify 'Moderate Risk' to maximize clinical safety.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preventative Care -->
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold"><i class="fa-solid fa-heart-pulse text-success me-2"></i>Risk Mitigation Strategies</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4 text-center">
+                    <div class="col-md-3">
+                        <i class="fa-solid fa-smoking-ban fa-3x text-danger mb-3"></i>
+                        <h6 class="fw-bold">Smoking Cessation</h6>
+                        <p class="small text-muted">Quitting smoking reduces stroke risk by 50% within 2 years.</p>
+                    </div>
+                    <div class="col-md-3">
+                        <i class="fa-solid fa-person-running fa-3x text-primary mb-3"></i>
+                        <h6 class="fw-bold">Physical Activity</h6>
+                        <p class="small text-muted">30 mins of moderate aerobic exercise 5x per week is recommended.</p>
+                    </div>
+                    <div class="col-md-3">
+                        <i class="fa-solid fa-carrot fa-3x text-warning mb-3"></i>
+                        <h6 class="fw-bold">DASH Diet</h6>
+                        <p class="small text-muted">Emphasis on fruits, vegetables, and low-fat dairy reduces hypertension.</p>
+                    </div>
+                    <div class="col-md-3">
+                        <i class="fa-solid fa-capsules fa-3x text-info mb-3"></i>
+                        <h6 class="fw-bold">Medication Adherence</h6>
+                        <p class="small text-muted">Consistent control of blood pressure and glucose via prescribed therapy.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

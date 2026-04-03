@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+joblib
+pandas
+scikit-learn
+shap
+openai
+python-dotenv
+pdfplumber
+pytesseract
+pillow
+sqlalchemy
+jinja2
+python-multipart
+xgboost
+imbalanced-learn

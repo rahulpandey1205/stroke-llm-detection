@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+
+{% block title %}Intelligence Dashboard - NeuroGuard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .kpi-card {
+        border-radius: 12px;
+        padding: 24px;
+        background: #fff;
+        border: none;
+        box-shadow: 0 0.75rem 1.5rem rgba(18,38,63,.03);
+    }
+    .kpi-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #95aac9;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 8px;
+    }
+    .kpi-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #12263f;
+    }
+    .kpi-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    .table-responsive {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    .table thead th {
+        background-color: #f9fbfd;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        color: #95aac9;
+        border-top: none;
+        padding: 16px 24px;
+    }
+    
+    .table tbody td {
+        padding: 16px 24px;
+        vertical-align: middle;
+    }
+
+    .badge-soft-danger { background-color: rgba(231, 76, 60, 0.1); color: #e74c3c; }
+    .badge-soft-warning { background-color: rgba(243, 156, 18, 0.1); color: #f39c12; }
+    .badge-soft-success { background-color: rgba(46, 204, 113, 0.1); color: #2ecc71; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <h2 class="section-title mb-0">Intelligence Dashboard</h2>
+        <p class="text-muted mb-0">Aggregate clinical insights and model performance analytics.</p>
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-primary" onclick="window.print()">
+            <i class="fa-solid fa-download me-2"></i> Export Report
+        </button>
+    </div>
+</div>
+
+<!-- KPI Row -->
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="kpi-card d-flex align-items-center">
+            <div class="flex-grow-1">
+                <div class="kpi-title">Total Records</div>
+                <div class="kpi-value">{{ total }}</div>
+            </div>
+            <div class="kpi-icon bg-primary bg-opacity-10 text-primary">
+                <i class="fa-solid fa-users"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="kpi-card d-flex align-items-center">
+            <div class="flex-grow-1">
+                <div class="kpi-title">High Risk %</div>
+                <div class="kpi-value text-danger">{{ (high / total * 100)|round(1) if total > 0 else 0 }}%</div>
+            </div>
+            <div class="kpi-icon bg-danger bg-opacity-10 text-danger">
+                <i class="fa-solid fa-fire"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="kpi-card d-flex align-items-center">
+            <div class="flex-grow-1">
+                <div class="kpi-title">Avg. BMI</div>
+                <div class="kpi-value">{{ avg_metrics.bmi|round(1) }}</div>
+            </div>
+            <div class="kpi-icon bg-warning bg-opacity-10 text-warning">
+                <i class="fa-solid fa-weight-scale"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="kpi-card d-flex align-items-center">
+            <div class="flex-grow-1">
+                <div class="kpi-title">Model Accuracy</div>
+                <div class="kpi-value text-success">95.2%</div>
+            </div>
+            <div class="kpi-icon bg-success bg-opacity-10 text-success">
+                <i class="fa-solid fa-bullseye"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row: Refined Precise Widgets -->
+<div class="row g-3 mb-5">
+    <!-- Chart 1: Risk Distribution -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold small text-uppercase text-muted">Risk Profile</span>
+                    <i class="fa-solid fa-chart-pie text-primary opacity-50 small"></i>
+                </div>
+                <div style="height: 140px;">
+                    <canvas id="riskChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chart 2: Age Demographics -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold small text-uppercase text-muted">Age Buckets</span>
+                    <i class="fa-solid fa-chart-bar text-primary opacity-50 small"></i>
+                </div>
+                <div style="height: 140px;">
+                    <canvas id="ageChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 3: Clinical Averages -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold small text-uppercase text-muted">Metric Weights</span>
+                    <i class="fa-solid fa-dna text-primary opacity-50 small"></i>
+                </div>
+                <div style="height: 140px;">
+                    <canvas id="metricsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Table Row -->
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold">Recent Assessments History</h6>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-outline-light text-dark border shadow-none px-3">CSV</button>
+                    <button class="btn btn-sm btn-outline-light text-dark border shadow-none px-3">Excel</button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>#ID</th>
+                                <th>Age</th>
+                                <th>Avg. Glucose</th>
+                                <th>BMI Index</th>
+                                <th>Risk Classification</th>
+                                <th class="text-end">Risk Probability</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in patients %}
+                            <tr>
+                                <td class="text-muted">#{{ p.id }}</td>
+                                <td class="fw-bold">{{ p.age }}</td>
+                                <td>{{ p.avg_glucose_level }} <small class="text-muted">mg/dL</small></td>
+                                <td>{{ p.bmi }}</td>
+                                <td>
+                                    {% if p.prediction == "High Stroke Risk" %}
+                                        <span class="badge badge-soft-danger rounded-pill px-3">High Risk</span>
+                                    {% elif p.prediction == "Moderate Stroke Risk" %}
+                                        <span class="badge badge-soft-warning rounded-pill px-3">Moderate</span>
+                                    {% else %}
+                                        <span class="badge badge-soft-success rounded-pill px-3">Low Risk</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end fw-bold text-primary">{{ p.probability|round(1) }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Professional styling for charts
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#95aac9';
+
+    // Risk Chart
+    new Chart(document.getElementById('riskChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['High Risk', 'Moderate', 'Low Risk'],
+            datasets: [{
+                data: [{{ high }}, {{ moderate }}, {{ low }}],
+                backgroundColor: ['#e74c3c', '#f39c12', '#2ecc71'],
+                borderWidth: 4,
+                borderColor: '#ffffff',
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            cutout: '80%',
+            plugins: {
+                legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+            }
+        }
+    });
+
+    // Age Chart
+    new Chart(document.getElementById('ageChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ age_groups.keys() | list | safe }},
+            datasets: [{
+                label: 'Assessment Count',
+                data: {{ age_groups.values() | list | safe }},
+                backgroundColor: 'rgba(44, 123, 229, 0.85)',
+                borderRadius: 8,
+                barThickness: 30
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            scales: {
+                y: { grid: { display: false }, beginAtZero: true, ticks: { stepSize: 1 } },
+                x: { grid: { display: false } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // Metrics Chart
+    new Chart(document.getElementById('metricsChart'), {
+        type: 'polarArea',
+        data: {
+            labels: ['Glucose', 'BMI', 'Age'],
+            datasets: [{
+                data: [{{ avg_metrics.glucose }}, {{ avg_metrics.bmi }}, {{ avg_metrics.age }}],
+                backgroundColor: [
+                    'rgba(52, 152, 219, 0.5)',
+                    'rgba(155, 89, 182, 0.5)',
+                    'rgba(46, 204, 113, 0.5)'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            scales: {
+                r: { ticks: { display: false }, grid: { color: '#edf2f9' } }
+            },
+            plugins: {
+                legend: { position: 'bottom', labels: { usePointStyle: true, padding: 15 } }
+            }
+        }
+    });
+</script>
+{% endblock %}

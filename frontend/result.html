@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Assessment Result - NeuroGuard{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ----------------------------------
+       SCREEN STYLES (UI)
+       ---------------------------------- */
+    .result-header { border-radius: 16px; overflow: hidden; border: none; color: white; margin-bottom: 30px; }
+    .bg-high { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); }
+    .bg-moderate { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); }
+    .bg-low { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); }
+    .ai-explanation-card { border-left: 6px solid var(--primary-blue); background-color: #fff; }
+    .risk-factor-bar { height: 8px; border-radius: 4px; background-color: #edf2f9; }
+    .impact-high { background-color: #e74c3c; }
+    .impact-low { background-color: #2ecc71; }
+    .metric-value { font-weight: 700; font-size: 1.2rem; color: #12263f; }
+
+    /* ----------------------------------
+       PRINT STYLES (MEDICAL REPORT)
+       ---------------------------------- */
+    @media print {
+        /* Hide UI Elements */
+        #sidebar, .breadcrumb, .mobile-nav, .btn, footer, .d-grid, .card-header i, .text-muted.small {
+            display: none !important;
+        }
+
+        /* Reset Layout */
+        #content { margin: 0 !important; padding: 0 !important; width: 100% !important; background: white !important; }
+        body { background: white !important; }
+        .card { box-shadow: none !important; border: 1px solid #eee !important; margin-bottom: 20px !important; break-inside: avoid; }
+
+        /* Report Header */
+        .result-header { 
+            background: #f8f9fa !important; color: #000 !important; 
+            border: 2px solid #000 !important; border-radius: 0 !important;
+            padding: 20px !important; margin-top: 0 !important;
+        }
+        .result-header h1 { color: #000 !important; font-size: 24pt !important; margin-top: 10px !important; }
+        .lead { color: #333 !important; font-size: 12pt !important; }
+
+        /* Medical Layout */
+        .report-print-header {
+            display: block !important;
+            border-bottom: 3px solid #2c7be5;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        .report-id-bar {
+            background: #eee !important;
+            padding: 10px;
+            font-family: monospace;
+            margin-bottom: 20px;
+        }
+        
+        .ai-explanation-card { border: 1px solid #ddd !important; padding: 20px !important; }
+        
+        /* Signature Area */
+        .physician-stamp {
+            display: block !important;
+            margin-top: 50px;
+            border-top: 1px solid #000;
+            width: 250px;
+            text-align: center;
+            padding-top: 10px;
+            float: right;
+        }
+    }
+
+    .report-print-header, .physician-stamp { display: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Print Only Header -->
+<div class="report-print-header">
+    <div class="row align-items-center">
+        <div class="col-8">
+            <h2 class="fw-bold mb-0">NEUROGUARD</h2>
+            <p class="mb-0 text-primary">Clinical Assessment & Risk Stratification Report</p>
+        </div>
+        <div class="col-4 text-end">
+            <p class="small mb-0">Date: <span id="currentDate"></span></p>
+            <p class="small">Report Ref: NG-{{ range(1000, 9999) | random }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Top Hero Section: Simple Result -->
+    <div class="col-12">
+        <div class="card result-header shadow-lg {% if risk == 'High Stroke Risk' %}bg-high{% elif risk == 'Moderate Stroke Risk' %}bg-moderate{% else %}bg-low{% endif %}">
+            <div class="card-body p-5">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="text-white-50 mb-1 fw-bold text-uppercase">Analysis Result</h4>
+                        <h1 class="display-3 fw-bold mb-3 text-white">{{ risk }}</h1>
+                        <p class="lead text-white-50 mb-0" style="max-width: 600px;">
+                            The predictive model has calculated a <strong>{{ probability }}%</strong> probability of stroke risk based on the clinical biomarkers provided.
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end text-center d-none d-md-block">
+                        <div class="display-1 text-white opacity-25">
+                            {% if risk == 'High Stroke Risk' %}
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            {% elif risk == 'Moderate Stroke Risk' %}
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                            {% else %}
+                                <i class="fa-solid fa-circle-check"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Insights -->
+    <div class="col-lg-7">
+        <!-- Visual Impact Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fa-solid fa-chart-simple text-primary me-2"></i>Key Risk Drivers</h5>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted small mb-4">The following factors contributed most significantly to the final prediction probability.</p>
+                
+                {% for item in contributors %}
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="fw-600">{{ item.split('(')[0] }}</span>
+                        <span class="badge {% if '+' in item %}bg-danger{% else %}bg-success{% endif %} bg-opacity-10 {% if '+' in item %}text-danger{% else %}text-success{% endif %}">
+                            {{ 'High Impact' if '+' in item else 'Reduced Risk' }}
+                        </span>
+                    </div>
+                    <div class="progress risk-factor-bar">
+                        {% set impact_val = 85 if '+' in item else 30 %}
+                        <div class="progress-bar {% if '+' in item %}impact-high{% else %}impact-low{% endif %}" style="width: {{ impact_val }}%"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Clinical Explanation -->
+        <div class="card ai-explanation-card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h4 class="fw-bold mb-3"><i class="fa-solid fa-file-medical text-primary me-2"></i>Clinical Synthesis</h4>
+                <div class="text-dark opacity-75 fs-5 lh-lg">
+                    {{ explanation | replace('\n', '<br>') | safe }}
+                </div>
+                
+                <hr class="my-4 opacity-5">
+                
+                <div class="alert alert-warning border-0 d-flex align-items-center mb-0">
+                    <i class="fa-solid fa-shield-medical me-3 h3 mb-0"></i>
+                    <small class="fw-bold">
+                        DIAGNOSTIC NOTICE: This synthesis is system-generated for clinical support. It does not constitute a definitive medical diagnosis. Consult a neurology specialist.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Stats -->
+    <div class="col-lg-5">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">Clinical Biomarkers</div>
+            <div class="card-body">
+                <div class="row g-3 text-center">
+                    <div class="col-4 border-end">
+                        <small class="text-muted d-block">Glucose</small>
+                        <span class="metric-value">{{ dashboard.Glucose|round(1) }}</span>
+                    </div>
+                    <div class="col-4 border-end">
+                        <small class="text-muted d-block">BMI</small>
+                        <span class="metric-value">{{ dashboard.BMI|round(1) }}</span>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-muted d-block">Age</small>
+                        <span class="metric-value">{{ dashboard.Age|round(0) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if report_text %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white d-flex justify-content-between">
+                <span>OCR Raw Extraction</span>
+                <i class="fa-solid fa-file-contract text-muted"></i>
+            </div>
+            <div class="card-body p-0">
+                <pre class="m-0 p-3 bg-light text-muted small" style="max-height: 200px; overflow-y: auto; white-space: pre-wrap;">{{ report_text }}</pre>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="d-grid gap-3">
+            <button class="btn btn-primary btn-lg py-3 fw-bold shadow-sm" onclick="window.print()">
+                <i class="fa-solid fa-file-pdf me-2 text-warning"></i> Generate Clinical PDF Report
+            </button>
+            <a href="/" class="btn btn-outline-secondary py-3 fw-bold">
+                <i class="fa-solid fa-plus me-2"></i> New Assessment
+            </a>
+            <a href="/dashboard" class="btn btn-link text-muted mt-2">
+                View Longitudinal Analytics
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Print Only Signature -->
+<div class="physician-stamp">
+    <p class="small text-muted mb-0">Authorized Clinical Signature</p>
+    <div style="height: 60px;"></div>
+    <p class="fw-bold mb-0">Diagnostic Review Board</p>
+    <p class="small">NeuroGuard v2.4.0</p>
+</div>
+
+<script>
+    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric'
+    });
+</script>
+{% endblock %}
