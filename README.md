@@ -111,16 +111,15 @@ http://127.0.0.1:5000
 
 ## 📸 Screenshots
 
-<img width="1919" height="1069" alt="Screenshot 2026-02-11 233219" src="https://github.com/user-attachments/assets/b222ebc0-6116-418f-9009-f6bc4a82bad5" />
-<img width="1919" height="1069" alt="Screenshot 2026-02-11 233204" src="https://github.com/user-attachments/assets/ddbc4604-d473-4c01-8415-a6cc68aa0e1b" />
-<img width="1919" height="1067" alt="Screenshot 2026-02-11 232225" src="https://github.com/user-attachments/assets/3d811526-3b1e-407d-8a81-5a1869fb1471" />
-<img width="1919" height="1066" alt="Screenshot 2026-02-11 232210" src="https://github.com/user-attachments/assets/9564650b-e448-4ed8-8dbd-8f3309639590" />
-<img width="1919" height="1066" alt="Screenshot 2026-02-11 232155" src="https://github.com/user-attachments/assets/182ae313-4b85-43fa-8b06-21edfe98e137" />
-<img width="1919" height="1065" alt="Screenshot 2026-02-11 232048" src="https://github.com/user-attachments/assets/8652fbbd-cc73-4e9d-a2eb-4680edf4cdc1" />
-<img width="1919" height="1068" alt="Screenshot 2026-02-11 233246" src="https://github.com/user-attachments/assets/b93822e9-14d2-4f06-ada4-282dbae54dd1" />
-<img width="1917" height="1069" alt="Screenshot 2026-02-11 233231" src="https://github.com/user-attachments/assets/d7ae493f-d154-46d3-b632-89500fb38907" />
+<img width="1892" height="862" alt="Screenshot 2026-04-03 151140" src="https://github.com/user-attachments/assets/595df2a0-32ad-431c-9e21-2d66471685fa" />
+<img width="1887" height="867" alt="Screenshot 2026-04-03 151127" src="https://github.com/user-attachments/assets/61a78f88-1b1e-4623-8536-149d76959d23" />
+<img width="1888" height="860" alt="Screenshot 2026-04-03 151118" src="https://github.com/user-attachments/assets/e4afc1e2-e403-49d5-96a1-232c6dd8a135" />
+<img width="1898" height="858" alt="Screenshot 2026-04-03 151106" src="https://github.com/user-attachments/assets/2a41aa05-7be4-4880-a18d-c8b5816a76f0" />
+<img width="1887" height="865" alt="Screenshot 2026-04-03 151003" src="https://github.com/user-attachments/assets/417c7a0d-864d-4f1d-a053-3f9ea90ec410" />
+<img width="1900" height="861" alt="Screenshot 2026-04-03 150948" src="https://github.com/user-attachments/assets/be645049-6b60-4765-b4ea-a844b95e025c" />
+<img width="1900" height="867" alt="Screenshot 2026-04-03 150919" src="https://github.com/user-attachments/assets/a0647056-81b1-47c7-bfe8-83429afe41a5" />
+<img width="1919" height="864" alt="Screenshot 2026-04-03 150859" src="https://github.com/user-attachments/assets/ca8800b0-17eb-4b27-9f5b-3bf83988e41a" />
 
----
 
 ## 🔒 Security & Best Practices
 
